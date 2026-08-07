@@ -139,7 +139,6 @@ const UserSchema = new Schema(
     phone: {
       type: String,
       required: false,
-      unique: true,
       sparse: true // Allows multiple with null phone
     },
     cookies: [
