@@ -564,43 +564,39 @@ const createAmulApi = async (pincode: string) => {
   return amulApi
 }
 
-export const getOrCreateAmulApi = async (
-  pincode?: string | null,
-  knownSubstore?: string | null,
-  strictMatching: boolean = false
-) => {
+export const getOrCreateAmulApi = async (pincode?: string | null) => {
   if (!pincode) {
     return {} as AmulApi
   }
 
-  let existingSession: AmulApi | undefined
-  if (!strictMatching) {
-    for (const [key, session] of substoreSessions.entries()) {
-      if (
-        key === knownSubstore ||
-        session.pincode_record?.pincode === pincode
-      ) {
-        existingSession = session
-        console.log(`Found existing session for substore ${key}, using it.`)
-        break
-      }
-    }
-  }
+  // let existingSession: AmulApi | undefined
+  // if (!strictMatching) {
+  //   for (const [key, session] of substoreSessions.entries()) {
+  //     if (
+  //       key === knownSubstore ||
+  //       session.pincode_record?.pincode === pincode
+  //     ) {
+  //       existingSession = session
+  //       console.log(`Found existing session for substore ${key}, using it.`)
+  //       break
+  //     }
+  //   }
+  // }
 
-  console.log(
-    `getOrCreateAmulApi called with pincode: ${pincode}, substore: ${knownSubstore ?? 'unknown'}, existing session: ${!!existingSession}`
-  )
+  // console.log(
+  //   `getOrCreateAmulApi called with pincode: ${pincode}, substore: ${knownSubstore ?? 'unknown'}, existing session: ${!!existingSession}`
+  // )
 
-  if (existingSession) {
-    if (await existingSession.hasUsableSession()) {
-      return existingSession
-    }
+  // if (existingSession) {
+  //   if (await existingSession.hasUsableSession()) {
+  //     return existingSession
+  //   }
 
-    console.warn(
-      `Cached Amul session for ${knownSubstore ?? pincode} has expired. Reinitializing.`
-    )
-    existingSession.close()
-  }
+  //   console.warn(
+  //     `Cached Amul session for ${knownSubstore ?? pincode} has expired. Reinitializing.`
+  //   )
+  //   existingSession.close()
+  // }
 
   return createAmulApi(pincode)
 }
