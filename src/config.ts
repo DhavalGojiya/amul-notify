@@ -32,21 +32,21 @@ export const AUTO_BOOKING_PAYMENT_CURRENCY = 'INR'
 export const AUTO_BOOKING_PAYMENT_PLANS = [
   {
     id: '30d',
-    amount: 1900,
+    amount: 2100,
     validityInDays: 30,
-    label: '30 days | 19 INR'
+    label: '30 days | 21 INR'
   },
   {
     id: '12d',
-    amount: 900,
+    amount: 1100,
     validityInDays: 12,
-    label: '12 days | 9 INR'
+    label: '12 days | 11 INR'
   },
   {
     id: '3d',
-    amount: 500,
+    amount: 700,
     validityInDays: 3,
-    label: '3 days | 5 INR'
+    label: '3 days | 7 INR'
   }
 ] as const
 export type AutoBookingPaymentPlan = (typeof AUTO_BOOKING_PAYMENT_PLANS)[number]
