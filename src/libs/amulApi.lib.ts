@@ -566,14 +566,19 @@ const createAmulApi = async (pincode: string) => {
 
 export const getOrCreateAmulApi = async (
   pincode?: string | null,
-  knownSubstore?: string | null
+  knownSubstore?: string | null,
+  strictMatching: boolean = false
 ) => {
   if (!pincode) {
     return {} as AmulApi
   }
   let existingSession: AmulApi | undefined
   for (const [key, session] of substoreSessions.entries()) {
-    if (key === knownSubstore || session.pincode_record?.pincode === pincode) {
+    const isMatching = strictMatching
+      ? key === knownSubstore && session.pincode_record?.pincode === pincode
+      : key === knownSubstore || session.pincode_record?.pincode === pincode
+
+    if (isMatching) {
       existingSession = session
       console.log(`Found existing session for substore ${key}, using it.`)
       break
