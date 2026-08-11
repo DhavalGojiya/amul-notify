@@ -92,6 +92,11 @@ export const AMUL_PRODUCT_CATEGORIES = [
     id: 'ghee',
     emoji: emojis.butter,
     label: 'Ghee'
+  },
+  {
+    id: 'milk',
+    emoji: emojis.milk,
+    label: 'Milk'
   }
 ]
 

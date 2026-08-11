@@ -40,5 +40,6 @@ export const emojis = {
   muscle: '💪',
   chocolate: '🍫',
   plant: '🌱',
-  butter: '🧈'
+  butter: '🧈',
+  milk: '🥛'
 }
