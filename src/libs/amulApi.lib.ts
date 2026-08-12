@@ -550,11 +550,14 @@ const createAmulApi = async (pincode: string) => {
   // )
   const existingSubstore = substoreSessions.get(record.substore.toString())
   if (existingSubstore) {
-    if (await existingSubstore.hasUsableSession()) {
-      return existingSubstore
+    if (!(await existingSubstore.hasUsableSession())) {
+      existingSubstore.close()
+      // set the new session for the substore
+      substoreSessions.set(record.substore.toString(), amulApi)
+      // console.log(
+      //   `Existing session for substore ${record.substore} was expired. Replaced with new session.`
+      // )
     }
-
-    existingSubstore.close()
   }
 
   await amulApi.setPincode(record)
