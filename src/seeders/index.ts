@@ -1,4 +1,5 @@
 import { adminSeeder } from './admin.seeder'
+import { addressSessionCompensationSeeder } from './addressSessionCompensation.seeder'
 import { allUsersAutoOrderFreeTrialSeeder } from './allUsersAutoOrderFreeTrial.seeder'
 import { autoOrderPermitDeclinedSeeder } from './autoOrderPermitDeclined.seeder'
 import { autoOrderPermitGrantedSeeder } from './autoOrderPermitGranted.seeder'
@@ -49,6 +50,17 @@ switch (seederName) {
       })
       .catch((error) => {
         console.error('Error granting all-users auto-order free trial:', error)
+        process.exit(1)
+      })
+    break
+  case 'address-session-compensation':
+    addressSessionCompensationSeeder()
+      .then((result) => {
+        console.log('Address-session compensation result:', result)
+        process.exit(0)
+      })
+      .catch((error) => {
+        console.error('Error applying address-session compensation:', error)
         process.exit(1)
       })
     break
