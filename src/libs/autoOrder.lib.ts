@@ -75,6 +75,8 @@ export class AmulAutoOrder {
         }
       })
     )
+
+    this.amulApi.setCookieString(this.cookieString ?? '')
   }
 
   private async getCookieString(): Promise<string> {

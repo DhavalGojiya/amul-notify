@@ -122,6 +122,23 @@ export class AmulApi {
     return response
   }
 
+  public setCookieString(cookieString: string) {
+    const cookies = cookieString.split(';').map((cookie) => cookie.trim())
+
+    for (const cookie of cookies) {
+      if (!cookie.includes('=')) {
+        continue
+      }
+      const [key, ...rest] = cookie.split('=')
+      const value = rest.join('=')
+      const cookieObj = parseCookie(`${key}=${value}`, { loose: true })
+      if (cookieObj) {
+        cookieObj.domain = new URL(SHOP_URL).hostname
+        this.jar.setCookieSync(cookieObj.toString(), SHOP_URL)
+      }
+    }
+  }
+
   private async ensureStoreVersion() {
     if (this.storeVersion) return
 
