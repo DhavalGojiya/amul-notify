@@ -35,12 +35,12 @@ const formatValidUntil = (date: Date): string => {
 const buildMessage = (details: CompensationDetails): string => {
   const reward =
     details.type === 'paid_extension'
-      ? `We have extended your auto-booking access by <b>${details.durationInDays} days</b>.`
-      : `We have given you <b>${details.durationInDays} days</b> of auto-booking access for free.`
+      ? `I have extended your auto-booking access by <b>${details.durationInDays} days</b>.`
+      : `I have given you <b>${details.durationInDays} days</b> of auto-booking access for free.`
 
   return [
-    '⚠️ <b>We’re sorry</b>',
-    "I've identified and fixed an issue that could show incorrect address details while setting up auto-ordering.",
+    '⚠️ <b>Apologies for the inconvenience</b>',
+    "I've identified and fixed an issue that could show incorrect address details while setting up auto-ordering. Also fixing the order placing E454 error that many users faced.",
     '',
     '⭐ <b>Your compensation</b>',
     `${reward} This is on us as an apology for the inconvenience.`,
