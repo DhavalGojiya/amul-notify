@@ -13,6 +13,16 @@ interface SetCommandsCacheKeyData {
   tgId: number | string
 }
 
+interface ExpiryNotificationCacheKeyData {
+  tgId: number | string
+  paymentId: string
+  remainingDays: number
+}
+
+interface ExpiryNotificationValue {
+  datekey: string // YYYY-MM-DD
+}
+
 const getProductsKey = (keyData: ProductsCacheKeyData) => {
   return `amul:products:${keyData.substore}:category:${encodeURIComponent(
     keyData.category
@@ -99,8 +109,36 @@ const setCommandsData = {
   }
 }
 
+const expiryNotification = {
+  set: async (
+    keyData: ExpiryNotificationCacheKeyData,
+    value: ExpiryNotificationValue
+  ) => {
+    const key = `amul:expiryNotification:${keyData.tgId}:${keyData.paymentId}:${keyData.remainingDays}`
+    return await redis.set(
+      key,
+      JSON.stringify(value),
+      'EX',
+      24 * 60 * 60 // Cache for 24 hours
+    )
+  },
+  get: async (
+    keyData: ExpiryNotificationCacheKeyData
+  ): Promise<ExpiryNotificationValue | null> => {
+    const key = `amul:expiryNotification:${keyData.tgId}:${keyData.paymentId}:${keyData.remainingDays}`
+    const cachedData = await redis.get(key)
+    return cachedData ? JSON.parse(cachedData) : null
+  },
+  delete: async (keyData: ExpiryNotificationCacheKeyData) => {
+    await redis.del(
+      `amul:expiryNotification:${keyData.tgId}:${keyData.paymentId}:${keyData.remainingDays}`
+    )
+  }
+}
+
 export default {
   products,
   jobData,
+  expiryNotification,
   setCommandsData
 }

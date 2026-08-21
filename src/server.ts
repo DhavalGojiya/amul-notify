@@ -6,7 +6,10 @@ import { stockCheckerJob } from './jobs/checker.job'
 import { initiateAmulSessions } from './services/amul.service'
 import app from '@/app'
 import { activityNotifierJob } from './jobs/activityReport.job'
-import { paymentExpiryJob } from './jobs/paymentExpiry.job'
+import {
+  incomingExpiryNotificationJob,
+  paymentExpiryJob
+} from './jobs/paymentExpiry.job'
 import {
   getMissingAutoOrderConfig,
   isAutoOrderConfigured
@@ -82,6 +85,7 @@ mongoose
 
     console.log('Starting payment expiry job...')
     paymentExpiryJob.start()
+    incomingExpiryNotificationJob.start()
     console.log('Payment expiry job started')
 
     // Start job

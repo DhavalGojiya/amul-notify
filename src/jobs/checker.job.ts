@@ -340,25 +340,111 @@ const stockCheckerJob = schedule(
               ]
             ])
 
-            const getInfoMessage = async () => {
-              const AUTO_BUY_BANNER = [
-                '',
-                `${emojis.star} want to auto-order this product whenever it's in stock?`,
-                `Send /autoorder to set it up now!`
-              ].join('\n')
+            // auto order bools
+            const autoOrderConfigured = isAutoOrderConfigured()
+            const isPermitted = user.orderSettings?.permitted ?? false
+            const isEnabled = user.orderSettings?.enabled ?? false
+            const isSkuIncluded = user.orderSettings?.skus?.includes(
+              product.sku
+            )
+            const isUserLoggedIn = isLoggedIn(user)
+            const hasValidPayment = await hasValidAutoBookingPayment(user._id)
+
+            const getInfoMessage = () => {
+              const INFO_MESSAGES: string[] = []
+
+              // deployment has auto order configured
+              if (autoOrderConfigured) {
+                // user is permitted but does not have valid payment
+                if (isPermitted && !hasValidPayment) {
+                  INFO_MESSAGES.push(
+                    ...[
+                      `${emojis.star} want to auto-order this product whenever it's in stock?`,
+                      `Send /autoorder to set it up now!`
+                    ]
+                  )
+                }
+
+                // user is permitted and has valid payment but auto-order is not enabled
+                if (isPermitted && hasValidPayment && !isEnabled) {
+                  INFO_MESSAGES.push(
+                    ...[
+                      `${emojis.star} Hey! Would you like to auto-order this product whenever it's in stock?`,
+                      `Send /autoorder to enable it now!`
+                    ]
+                  )
+                }
+
+                // user is permitted and has valid payment but auto-order is enabled but sku is not included
+                if (
+                  isPermitted &&
+                  hasValidPayment &&
+                  isEnabled &&
+                  !isSkuIncluded
+                ) {
+                  INFO_MESSAGES.push(
+                    ...[
+                      `${emojis.star} Did you forget to auto-order this product?`,
+                      `Send /autoorder to include this product now!`
+                    ]
+                  )
+                }
+
+                // user is permitted and has valid payment but auto-order is enabled and sku is included but user is not logged in
+                if (
+                  isPermitted &&
+                  hasValidPayment &&
+                  isEnabled &&
+                  isSkuIncluded &&
+                  !isUserLoggedIn
+                ) {
+                  INFO_MESSAGES.push(
+                    ...[
+                      `${emojis.star} Hey! Looks like your Amul session has expired.`,
+                      `Send /autoorder to log in again and continue auto-ordering!`
+                    ]
+                  )
+                }
+
+                // user is permitted and has valid payment but auto-order is enabled and sku is included and user is logged in
+                if (
+                  isPermitted &&
+                  hasValidPayment &&
+                  isEnabled &&
+                  isSkuIncluded &&
+                  isUserLoggedIn
+                ) {
+                  INFO_MESSAGES.push(
+                    ...[
+                      `${emojis.star} Your auto-order is enabled for this product.`,
+                      `You will receive a payment link to complete the order.`
+                    ]
+                  )
+                }
+              }
+
+              INFO_MESSAGES.push('')
 
               if (trackingStyle === 'once') {
-                return `<i>The product is now untracked. You can track it again using the button below. ${!(await hasValidAutoBookingPayment(user._id)) ? AUTO_BUY_BANNER : ''}</i>`
+                INFO_MESSAGES.push(
+                  `<i>The product is now untracked. You can track it again using the button below. </i>`
+                )
               } else if (
                 trackingStyle === 'always' &&
                 (dbProduct.remainingNotifyCount ?? 1) - 1 < 1
               ) {
-                return `<i>You will receive more updates when the product will be restocked. ${!(await hasValidAutoBookingPayment(user._id)) ? AUTO_BUY_BANNER : ''}</i>`
+                INFO_MESSAGES.push(
+                  `<i>You will receive more updates when the product will be restocked.</i>`
+                )
               } else {
-                return `<i>You will receive updates ${
-                  dbProduct.remainingNotifyCount - 1
-                } more times for this product. Once done, You'll receive ${trackingCount} update(s) on next restock. ${!(await hasValidAutoBookingPayment(user._id)) ? AUTO_BUY_BANNER : ''}</i>`
+                INFO_MESSAGES.push(
+                  `<i>You will receive updates ${
+                    dbProduct.remainingNotifyCount - 1
+                  } more times for this product. Once done, You'll receive ${trackingCount} update(s) on next restock.</i>`
+                )
               }
+
+              return INFO_MESSAGES.join('\n')
             }
 
             const message = [
@@ -368,7 +454,7 @@ const stockCheckerJob = schedule(
                 substore: user.substore
               }),
               '',
-              await getInfoMessage()
+              getInfoMessage()
               // Show untracked info
             ].join('\n')
 
@@ -422,12 +508,14 @@ const stockCheckerJob = schedule(
                   }
 
                   // Auto Order Check
+
                   if (
-                    isAutoOrderConfigured() &&
-                    user.orderSettings.permitted &&
-                    user.orderSettings.enabled &&
-                    user.orderSettings.skus.includes(product.sku) &&
-                    isLoggedIn(user)
+                    autoOrderConfigured &&
+                    isPermitted &&
+                    isEnabled &&
+                    isSkuIncluded &&
+                    isUserLoggedIn &&
+                    hasValidPayment
                   ) {
                     try {
                       await sendMessageQueue({

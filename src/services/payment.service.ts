@@ -315,3 +315,15 @@ export const expireActiveAutoBookingPayments = async (
 
   return payments
 }
+
+export const getActiveAutoBookingPayment = async (
+  userId: Types.ObjectId | string
+): Promise<HydratedPayment | null> => {
+  return PaymentModel.findOne({
+    user: userId,
+    status: 'paid',
+    validUntil: {
+      $gt: new Date()
+    }
+  }).sort({ validUntil: -1, createdAt: -1 })
+}
