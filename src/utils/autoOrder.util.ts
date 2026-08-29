@@ -2,13 +2,17 @@ import { HydratedUser, IUser } from '@/models/user.model'
 import env from '@/env'
 import dayjs from '@/libs/dayjs.lib'
 import { HydratedPayment } from '@/models/payment.model'
-import { hasValidAutoBookingPayment } from '@/services/payment.service'
+import {
+  createAutoBookingPaymentLink,
+  hasValidAutoBookingPayment
+} from '@/services/payment.service'
 import { startCommandLink } from './telegram.util'
 import { createLink } from './bot.utils'
 import { inlineKeyboard } from 'telegraf/markup'
-import { ACTIONS, TIMEZONE } from '@/config'
+import { ACTIONS, AutoBookingPaymentPlan, TIMEZONE } from '@/config'
 import { Markup } from 'telegraf'
 import { isStoredCookieExpired } from './cookie.util'
+import { emojis } from './emoji.util'
 
 const hasValue = (value?: string): boolean => {
   return Boolean(value?.trim())
@@ -154,6 +158,12 @@ export const buildAutoOrderKeyboard = (user: HydratedUser) => {
             ACTIONS.settings.autoOrder.setAddress
           )
         : null,
+      isConfigured
+        ? Markup.button.callback(
+            'Renew Plan',
+            ACTIONS.settings.autoOrder.renewPlan
+          )
+        : null,
       Markup.button.callback('Home', ACTIONS.home)
     ].map((btn) =>
       // take whole row
@@ -221,4 +231,34 @@ const getAutoBookingSubscriptionDetails = (
     `expires ${validUntil.format('DD MMM YYYY, hh:mm A')}`,
     `${daysRemaining} day${daysRemaining === 1 ? '' : 's'} remaining`
   ].join(' | ')
+}
+
+export const buildAutoOrderPaymentMessage = () => {
+  return [
+    `${emojis.info} <b>Payment required</b>`,
+    `Choose one plan below to enable auto-booking.`,
+    ``,
+    `<b>Terms and Conditions</b>`,
+    `- This payment is non-refundable.`,
+    `- If you have any issues, contact the developer using /support.`,
+    `- Please wait until your payment finishes and redirects you to the confirmation page.`
+  ].join('\n')
+}
+
+export const buildAutoOrderPaymentPlansKeyboard = async (
+  user: HydratedUser,
+  plans: Array<AutoBookingPaymentPlan>
+) => {
+  const payments = await Promise.all(
+    plans.map((plan) => createAutoBookingPaymentLink(user, plan))
+  )
+  const keyboard = inlineKeyboard(
+    plans.map((plan, index) => ({
+      text: plan.label,
+      url: payments[index].shortUrl
+    })),
+    { columns: 1 }
+  )
+
+  return keyboard
 }

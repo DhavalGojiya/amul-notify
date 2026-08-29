@@ -1,5 +1,6 @@
 import { BotCommand } from 'telegraf/typings/core/types/typegram'
 import { emojis } from './utils/emoji.util'
+import { DeepMutable } from './types/DeepMutable.types'
 
 export const LOG_CHANNEL = -4963360663
 
@@ -49,7 +50,9 @@ export const AUTO_BOOKING_PAYMENT_PLANS = [
     label: '3 days | 7 INR'
   }
 ] as const
-export type AutoBookingPaymentPlan = (typeof AUTO_BOOKING_PAYMENT_PLANS)[number]
+export type AutoBookingPaymentPlan = DeepMutable<
+  (typeof AUTO_BOOKING_PAYMENT_PLANS)[number]
+>
 export const DEFAULT_AUTO_BOOKING_PAYMENT_PLAN = AUTO_BOOKING_PAYMENT_PLANS[0]
 
 export const ACTIONS = {
@@ -67,7 +70,8 @@ export const ACTIONS = {
       howItWorks: 'autoOrder:howItWorks',
       login: 'autoOrder:login',
       logout: 'autoOrder:logout',
-      setAddress: 'autoOrder:setAddress'
+      setAddress: 'autoOrder:setAddress',
+      renewPlan: 'autoOrder:renewPlan'
     }
   }
 }

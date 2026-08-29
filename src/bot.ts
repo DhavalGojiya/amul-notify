@@ -135,6 +135,10 @@ bot.action(
   ACTIONS.settings.autoOrder.setAddress,
   withCatchAsync(setAddressAction)
 )
+bot.action(
+  ACTIONS.settings.autoOrder.renewPlan,
+  withCatchAsync(toggleAutoOrderEnabledAction)
+)
 
 bot.use(withCatchAsync(loggerMiddleware))
 

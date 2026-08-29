@@ -247,7 +247,12 @@ const recordAutoBookingPaymentUpdate = async (
       payment.razorpayPaymentId = callback.payment_id
     }
     payment.paidAt = payment.paidAt || now
-    payment.validUntil = payment.validUntil || addDays(now, plan.validityInDays)
+    if (!payment.validUntil) {
+      const activePayment = await getActiveAutoBookingPayment(payment.user)
+      const validFrom = activePayment?.validUntil ?? now
+
+      payment.validUntil = addDays(validFrom, plan.validityInDays)
+    }
     activated = !hadRecordedPaidAccess
   }
 

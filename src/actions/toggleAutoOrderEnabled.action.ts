@@ -1,14 +1,21 @@
 import { autoOrderCommand } from '@/commands/autoorder.command'
-import { AUTO_BOOKING_PAYMENT_PLANS } from '@/config'
 import {
-  createAutoBookingPaymentLink,
+  ACTIONS,
+  AUTO_BOOKING_PAYMENT_PLANS,
+  AutoBookingPaymentPlan
+} from '@/config'
+import {
+  getActiveAutoBookingPayment,
   hasValidAutoBookingPayment
 } from '@/services/payment.service'
 import { ActionContext } from '@/types/context.types'
-import { emojis } from '@/utils/emoji.util'
-import { isAutoOrderConfigured } from '@/utils/autoOrder.util'
+import {
+  buildAutoOrderPaymentMessage,
+  buildAutoOrderPaymentPlansKeyboard,
+  isAutoOrderConfigured
+} from '@/utils/autoOrder.util'
+import { cloneDeep } from '@/utils/cloneDeep.util'
 import { MiddlewareFn } from 'telegraf'
-import { inlineKeyboard } from 'telegraf/markup'
 
 export const toggleAutoOrderEnabledAction: MiddlewareFn<ActionContext> = async (
   ctx,
@@ -22,39 +29,35 @@ export const toggleAutoOrderEnabledAction: MiddlewareFn<ActionContext> = async (
   const currentStatus = ctx.user?.orderSettings.enabled || false
   const newStatus = !currentStatus
 
-  if (newStatus) {
+  const isRenewing =
+    ctx.updateType === 'callback_query' &&
+    ctx.callbackQuery &&
+    'data' in ctx.callbackQuery
+      ? ctx.callbackQuery.data === ACTIONS.settings.autoOrder.renewPlan
+      : false
+
+  if (newStatus || isRenewing) {
     const hasValidPayment = await hasValidAutoBookingPayment(ctx.user._id)
 
-    if (!hasValidPayment) {
-      const payments = await Promise.all(
-        AUTO_BOOKING_PAYMENT_PLANS.map((plan) =>
-          createAutoBookingPaymentLink(ctx.user, plan)
-        )
-      )
-      const keyboard = inlineKeyboard(
-        AUTO_BOOKING_PAYMENT_PLANS.map((plan, index) => ({
-          text: plan.label,
-          url: payments[index].shortUrl
-        })),
-        { columns: 1 }
-      )
+    if (!hasValidPayment || isRenewing) {
+      const currentPlan = await getActiveAutoBookingPayment(ctx.user._id)
+
+      const clonedPlans = cloneDeep(AUTO_BOOKING_PAYMENT_PLANS)
+
+      const plans: AutoBookingPaymentPlan[] = currentPlan
+        ? clonedPlans.filter(
+            // show all plans greater than or equal to current plan
+            (plan) => plan.amount >= currentPlan.amount
+          )
+        : clonedPlans
+
+      const keyboard = await buildAutoOrderPaymentPlansKeyboard(ctx.user, plans)
 
       await ctx.answerCbQuery('Payment required')
-      await ctx.reply(
-        [
-          `${emojis.info} <b>Payment required</b>`,
-          `Choose one plan below to enable auto-booking.`,
-          ``,
-          `<b>Terms and Conditions</b>`,
-          `- This payment is non-refundable.`,
-          `- If you have any issues, contact the developer using /support.`,
-          `- Please wait until your payment finishes and redirects you to the confirmation page.`
-        ].join('\n'),
-        {
-          parse_mode: 'HTML',
-          reply_markup: keyboard.reply_markup
-        }
-      )
+      await ctx.reply(buildAutoOrderPaymentMessage(), {
+        parse_mode: 'HTML',
+        reply_markup: keyboard.reply_markup
+      })
 
       return next()
     }
