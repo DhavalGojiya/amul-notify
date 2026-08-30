@@ -65,7 +65,7 @@ export const autoOrderCommand: MiddlewareFn<
   }
 
   const message = buildAutoOrderOverviewMessage(user, payment)
-  const keyboard = buildAutoOrderKeyboard(user)
+  const keyboard = await buildAutoOrderKeyboard(user)
 
   if (ctx.updateType === 'callback_query') {
     await ctx.editMessageText(message, {

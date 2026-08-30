@@ -4,6 +4,7 @@ import dayjs from '@/libs/dayjs.lib'
 import { HydratedPayment } from '@/models/payment.model'
 import {
   createAutoBookingPaymentLink,
+  getActiveAutoBookingPayment,
   hasValidAutoBookingPayment
 } from '@/services/payment.service'
 import { startCommandLink } from './telegram.util'
@@ -119,10 +120,11 @@ export const isLoggedIn = (user: HydratedUser | IUser): boolean => {
   )
 }
 
-export const buildAutoOrderKeyboard = (user: HydratedUser) => {
+export const buildAutoOrderKeyboard = async (user: HydratedUser) => {
   const isConfigured = isAutoOrderConfigured()
   const loggedIn = isLoggedIn(user)
   const isEnabled = user.orderSettings.enabled
+  const hasActivePlan = await getActiveAutoBookingPayment(user._id)
 
   const keyboard = inlineKeyboard(
     [
@@ -158,7 +160,7 @@ export const buildAutoOrderKeyboard = (user: HydratedUser) => {
             ACTIONS.settings.autoOrder.setAddress
           )
         : null,
-      isConfigured
+      isConfigured && hasActivePlan
         ? Markup.button.callback(
             'Renew Plan',
             ACTIONS.settings.autoOrder.renewPlan

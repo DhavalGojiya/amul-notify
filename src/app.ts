@@ -67,7 +67,7 @@ const notifyAutoBookingPaymentReceived = async (
       ].join('\n'),
       {
         parse_mode: 'HTML',
-        reply_markup: buildAutoOrderKeyboard(result.user).reply_markup
+        reply_markup: (await buildAutoOrderKeyboard(result.user)).reply_markup
       }
     )
   }
