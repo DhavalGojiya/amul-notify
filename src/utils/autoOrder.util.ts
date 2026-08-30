@@ -160,9 +160,9 @@ export const buildAutoOrderKeyboard = async (user: HydratedUser) => {
             ACTIONS.settings.autoOrder.setAddress
           )
         : null,
-      isConfigured && hasActivePlan
+      isConfigured
         ? Markup.button.callback(
-            'Renew Plan',
+            `${hasActivePlan ? 'Renew' : 'Purchase'} Plan`,
             ACTIONS.settings.autoOrder.renewPlan
           )
         : null,
